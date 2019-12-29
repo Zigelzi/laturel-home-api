@@ -1,6 +1,7 @@
 from flask import jsonify, request
 
-from home_api import app
+from home_api import app, db
+from home_api.models import HousingAssociation, HousingAssociationSchema
 from home_api.config import Config, DevConfig
 
 housing_associations = [
@@ -21,14 +22,16 @@ def all_housing_associations():
     
     if request.method == 'POST':
         post_data = request.get_json()
-        housing_associations.append({
-            'name': post_data.get('name'),
-            'businessId': post_data.get('businessId'),
-            'street': post_data.get('street'),
-            'streetNumber': post_data.get('streetNumber'),
-            'postalCode': post_data.get('postalCode'),
-            'city': post_data.get('city')
-        })
+        housing_association = HousingAssociation(
+            name = post_data.get('name'),
+            business_id = post_data.get('businessId'),
+            street = post_data.get('street'),
+            street_number = post_data.get('streetNumber'),
+            postal_code = post_data.get('postalCode'),
+            city = post_data.get('city')
+        )
+        db.session.add(housing_association)
+        db.session.commit()
         response_object['message'] = 'Housing association added!'
     else:
         response_object['housingAssociations'] = housing_associations
