@@ -3,21 +3,22 @@ from flask import jsonify, request
 from home_api import app
 from home_api.config import Config, DevConfig
 
+housing_associations = [
+    {
+        'name': "Hakulinpuisto",
+        'businessId': "1234567-8",
+        'street': "Hakulintie",
+        'streetNumber': 43,
+        'postalCode': "08500",
+        'city': "Lohja"
+    }
+]
+
 @app.route('/housing_associations', methods=['GET', 'POST'])
 def all_housing_associations():
     
     response_object = {'status': 'success'}
-
-    housing_associations = [
-        {
-          'name': "Hakulinpuisto",
-          'businessId': "1234567-8",
-          'street': "Hakulintie",
-          'streetNumber': 43,
-          'postalCode': "08500",
-          'city': "Lohja"
-        }
-    ]
+    
     if request.method == 'POST':
         post_data = request.get_json()
         housing_associations.append({

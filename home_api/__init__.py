@@ -7,7 +7,7 @@ from home_api.config import Config, DevConfig
 app = Flask(__name__)
 app.config.from_object(DevConfig)
 # Enable Cross Origin Resource Sharing (CORS)
-CORS(app, resources={r'/*':{'origins':'*'}}) 
+CORS(app, resources={r'/*': {'origins': '*'}})
 
 db = SQLAlchemy(app)
 
