@@ -1,5 +1,6 @@
 from home_api import db, ma
 from datetime import datetime
+from marshmallow import EXCLUDE
 
 '''
 Database model for the application.
@@ -49,6 +50,11 @@ class Apartment(db.Model):
     def __repr__(self):
         return f'<Apartment {self.apartment_number}>'
 
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255))
+    email = db.Column(db.String(255), unique=True)
+
 # Marshmallow serialization schemas
 class HousingAssociationSchema(ma.ModelSchema):
     # TODO: Serialize the nested schemas
@@ -62,3 +68,7 @@ class BuildingSchema(ma.ModelSchema):
 class ApartmentSchema(ma.ModelSchema):
     class Meta:
         model = Apartment
+
+class UserSchema(ma.ModelSchema):
+    class Meta:
+        model = User

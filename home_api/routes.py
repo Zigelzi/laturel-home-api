@@ -2,12 +2,13 @@ from flask import jsonify, request
 from sqlalchemy import exc
 
 from home_api import app, db
-from home_api.models import HousingAssociation, Building, Apartment, HousingAssociationSchema
+from home_api.models import HousingAssociation, Building, Apartment, User, UserSchema, HousingAssociationSchema
 from home_api.config import Config, DevConfig
 
 # Initialize the Flask-Marshmallow schemas for serializations
 all_ha_schema = HousingAssociationSchema(many=True) # Serialize all the results as array
-
+ha_schema = HousingAssociationSchema()
+users_schema = UserSchema()
 """
 Route abbreviations
 ha = Housing Association, refering to the whole housing entity
@@ -22,16 +23,17 @@ def all_ha():
     
     if request.method == 'POST':
         try:
-            post_data = request.get_json()
+            request_data = request.get_json()
             # Create DB model from the received JSON.
-            housing_association = HousingAssociation(
-                name = post_data.get('name'),
-                business_id = post_data.get('businessId'),
-                street = post_data.get('street'),
-                street_number = int(post_data.get('streetNumber')),
-                postal_code = post_data.get('postalCode'),
-                city = post_data.get('city')
-            )
+            # housing_association = HousingAssociation(
+            #     name = post_data.get('name'),
+            #     business_id = post_data.get('businessId'),
+            #     street = post_data.get('street'),
+            #     street_number = int(post_data.get('streetNumber')),
+            #     postal_code = post_data.get('postalCode'),
+            #     city = post_data.get('city')
+            # )
+            housing_association = ha_schema.load(request_data)
             db.session.add(housing_association)
             db.session.commit()
             for building in post_data['buildings']['buildingArray']:
@@ -70,7 +72,7 @@ def delete_ha(ha_id):
     response_object = {'status': 'success'}
 
     if request.method == 'DELETE':
-        housing_association = HousingAssociation.query.get(ha_id)
+        housing_association = HousingAssociation.query.get_or_404(ha_id)
         # If housing association is found, delete it's record
         if housing_association:
             db.session.delete(housing_association)
@@ -78,4 +80,18 @@ def delete_ha(ha_id):
             response_object['message'] = 'Housing association deleted!'
         else:
             response_object['message'] = 'Housing association not found'
+    return jsonify(response_object)
+
+@app.route('/users/', methods=['GET', 'POST'])
+def users():
+    response_object = {'status': 'success'}
+    print(request)
+
+    if request.method == 'POST':
+        request_data = request.get_json()
+        # User Marshmallow to load the JSON directly as User object and commit it to DB.
+        user = users_schema.load(request_data)
+        db.session.add(user)
+        db.session.commit()
+        response_object['message'] = 'User added successfully!'
     return jsonify(response_object)
