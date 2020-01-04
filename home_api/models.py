@@ -51,6 +51,7 @@ class Apartment(db.Model):
 
 # Marshmallow serialization schemas
 class HousingAssociationSchema(ma.ModelSchema):
+    # TODO: Serialize the nested schemas
     class Meta:
         model = HousingAssociation
 

@@ -2,7 +2,7 @@ from flask import jsonify, request
 from sqlalchemy import exc
 
 from home_api import app, db
-from home_api.models import HousingAssociation, HousingAssociationSchema
+from home_api.models import HousingAssociation, Building, Apartment, HousingAssociationSchema
 from home_api.config import Config, DevConfig
 
 # Initialize the Flask-Marshmallow schemas for serializations
@@ -34,10 +34,29 @@ def all_ha():
             )
             db.session.add(housing_association)
             db.session.commit()
+            for building in post_data['buildings']['buildingArray']:
+                # Create DB entry for all buildings in buildings array
+                building_model = Building(
+                                    building_name=building['buildingLetter'],
+                                    housing_association_id = housing_association.id
+                                    )
+                db.session.add(building_model)
+                db.session.commit()
+                # Convert the apartmentCount to integer
+                building['apartmentCount'] = int(building['apartmentCount'])
+                for apartment in range(building['apartmentCount']):
+                    apartment_number = apartment + 1
+                    apartment_model= Apartment(
+                                            apartment_number = apartment_number,
+                                            building_id = building_model.id
+                                        )
+                    db.session.add(apartment_model)
+                db.session.commit()
             response_object['message'] = 'Housing association added!'
-        except exc.IntegrityError:
+        except exc.IntegrityError as exception:
             response_object['status'] = 'fail'
-            response_object['message'] = 'Unable to add housing association, unique database constraint violated'
+            response_object['message'] = 'Something failed when adding housing association to database'
+            print(exception)
             db.session.rollback()
     else:
         housing_associations = HousingAssociation.query.all()
