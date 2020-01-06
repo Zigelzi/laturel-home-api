@@ -1,6 +1,7 @@
 from home_api import db, ma
 from datetime import datetime
 from marshmallow import EXCLUDE
+from marshmallow_sqlalchemy.fields import Nested
 
 '''
 Database model for the application.
@@ -56,14 +57,19 @@ class User(db.Model):
     email = db.Column(db.String(255), unique=True)
 
 # Marshmallow serialization schemas
-class HousingAssociationSchema(ma.ModelSchema):
-    # TODO: Serialize the nested schemas
-    class Meta:
-        model = HousingAssociation
 
 class BuildingSchema(ma.ModelSchema):
+    apartments = Nested(lambda: ApartmentSchema, many=True, dump_only=True, exclude=['building'])
     class Meta:
         model = Building
+
+class HousingAssociationSchema(ma.ModelSchema):
+    # Override the buildings attribute as Nested field.
+    buildings = Nested(BuildingSchema, many=True, dump_only=True, exclude=['housing_association'])
+    class Meta:
+        model = HousingAssociation
+        unknown = EXCLUDE
+
 
 class ApartmentSchema(ma.ModelSchema):
     class Meta:

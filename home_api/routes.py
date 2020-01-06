@@ -1,5 +1,5 @@
 from flask import jsonify, request
-from sqlalchemy import exc
+from sqlalchemy.exc import IntegrityError
 
 from home_api import app, db
 from home_api.models import HousingAssociation, Building, Apartment, User, UserSchema, HousingAssociationSchema
@@ -8,6 +8,7 @@ from home_api.config import Config, DevConfig
 # Initialize the Flask-Marshmallow schemas for serializations
 all_ha_schema = HousingAssociationSchema(many=True) # Serialize all the results as array
 ha_schema = HousingAssociationSchema()
+
 users_schema = UserSchema()
 """
 Route abbreviations
@@ -25,37 +26,33 @@ def all_ha():
         try:
             request_data = request.get_json()
             # Create DB model from the received JSON.
-            # housing_association = HousingAssociation(
-            #     name = post_data.get('name'),
-            #     business_id = post_data.get('businessId'),
-            #     street = post_data.get('street'),
-            #     street_number = int(post_data.get('streetNumber')),
-            #     postal_code = post_data.get('postalCode'),
-            #     city = post_data.get('city')
-            # )
             housing_association = ha_schema.load(request_data)
             db.session.add(housing_association)
             db.session.commit()
-            for building in post_data['buildings']['buildingArray']:
-                # Create DB entry for all buildings in buildings array
-                building_model = Building(
-                                    building_name=building['buildingLetter'],
-                                    housing_association_id = housing_association.id
-                                    )
-                db.session.add(building_model)
-                db.session.commit()
-                # Convert the apartmentCount to integer
-                building['apartmentCount'] = int(building['apartmentCount'])
-                for apartment in range(building['apartmentCount']):
-                    apartment_number = apartment + 1
-                    apartment_model= Apartment(
-                                            apartment_number = apartment_number,
-                                            building_id = building_model.id
+            # Return the added HA to frontend to be used as current HA
+            if request_data['buildings']:
+                # If buildings exist loop though them
+                for building in request_data['buildings']:
+                    # Create DB entry for all buildings in buildings array
+                    building_model = Building(
+                                        building_name=building['building_name'],
+                                        housing_association_id = housing_association.id
                                         )
-                    db.session.add(apartment_model)
-                db.session.commit()
+                    db.session.add(building_model)
+                    db.session.commit()
+                    # Convert the apartment_count to integer
+                    building['apartment_count'] = int(building['apartment_count'])
+                    for apartment in range(building['apartment_count']):
+                        apartment_number = apartment + 1
+                        apartment_model= Apartment(
+                                                apartment_number = apartment_number,
+                                                building_id = building_model.id
+                                            )
+                        db.session.add(apartment_model)
+                    db.session.commit()
+            response_object['data'] = ha_schema.dump(housing_association)
             response_object['message'] = 'Housing association added!'
-        except exc.IntegrityError as exception:
+        except IntegrityError as exception:
             response_object['status'] = 'fail'
             response_object['message'] = 'Something failed when adding housing association to database'
             print(exception)
