@@ -1,7 +1,10 @@
-from home_api import db, ma
-from datetime import datetime
+from home_api import app, db, ma
+
+import jwt
+from datetime import datetime, timedelta
 from marshmallow import EXCLUDE
 from marshmallow_sqlalchemy.fields import Nested
+from werkzeug.security import generate_password_hash, check_password_hash
 
 '''
 Database model for the application.
@@ -55,6 +58,50 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
     email = db.Column(db.String(255), unique=True)
+    password_hash = db.Column(db.String(128))
+
+    # Foreign keys
+    building_id = db.Column(db.Integer, db.ForeignKey('building.id'))
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def encode_auth_token(self, user_id):
+        """
+        Generate auth token for user
+        :return: string
+        """
+        try:
+            payload = {
+                'exp': datetime.utcnow() + timedelta(days=0, seconds=5),
+                'iat': datetime.utcnow(),
+                'sub': user_id
+            }
+        return jwt.encode(
+            payload,
+            app.config.get('SECRET_KEY'),
+            algorithm='HS256'
+        )
+        except Exception as e:
+            return e
+    
+    @staticmethod
+    def decode_auth_token(auth_token):
+        """
+        Decodes the auth token
+        :param auth_token:
+        :return: integer|string
+        """
+        try:
+            payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'))
+            return payload['sub']
+        except jwt.ExpiredSignatureError:
+            return 'Signature expired, Please log in again.'
+        except jwt.InvalidTokenError:
+            return 'Invalid token. Please log in again.'
 
 # Marshmallow serialization schemas
 
@@ -66,6 +113,7 @@ class BuildingSchema(ma.ModelSchema):
 class HousingAssociationSchema(ma.ModelSchema):
     # Override the buildings attribute as Nested field.
     buildings = Nested(BuildingSchema, many=True, dump_only=True, exclude=['housing_association'])
+
     class Meta:
         model = HousingAssociation
         unknown = EXCLUDE
