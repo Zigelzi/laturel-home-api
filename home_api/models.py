@@ -2,7 +2,7 @@ from home_api import app, db, ma
 
 import jwt
 from datetime import datetime, timedelta
-from marshmallow import EXCLUDE
+from marshmallow import EXCLUDE, validate
 from marshmallow_sqlalchemy.fields import Nested
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -80,11 +80,11 @@ class User(db.Model):
                 'iat': datetime.utcnow(),
                 'sub': user_id
             }
-        return jwt.encode(
-            payload,
-            app.config.get('SECRET_KEY'),
-            algorithm='HS256'
-        )
+            return jwt.encode(
+                payload,
+                app.config.get('SECRET_KEY'),
+                algorithm='HS256'
+            )
         except Exception as e:
             return e
     
@@ -124,5 +124,8 @@ class ApartmentSchema(ma.ModelSchema):
         model = Apartment
 
 class UserSchema(ma.ModelSchema):
+    name = ma.Str(required=True)
+    email = ma.Str(required=True, validate=validate.Email(error='Not valid email address'))
+    #password_hash = ma.Str(required=True, load_only=True)
     class Meta:
-        model = User
+        unknown = EXCLUDE
