@@ -13,8 +13,8 @@ many_users_schema = UserSchema(many=True) # Serialize all the results as array
 users_schema = UserSchema()
 
 # Status message descriptions
-fail_status_msg = 'fail'
-success_status_msg = 'success'
+status_msg_fail = 'fail'
+status_msg_success = 'success'
 
 """
 Route abbreviations
@@ -24,7 +24,7 @@ One housing association might contain multiple building and buildings might cont
 
 @app.route('/ha/get_all', methods=['GET'])
 def get_all_ha():
-    response_object = {'status': success_status_msg}
+    response_object = {'status': status_msg_success}
     housing_associations = HousingAssociation.query.all()
     # Serialize the query results to ha_array variable and add the array to response
     ha_array = all_ha_schema.dump(housing_associations)
@@ -33,7 +33,7 @@ def get_all_ha():
 
 @app.route('/ha/add', methods=['POST'])
 def add_ha():
-    response_object = {'status': success_status_msg}
+    response_object = {'status': status_msg_success}
 
     try:
         request_data = request.get_json()
@@ -66,7 +66,7 @@ def add_ha():
         response_object['message'] = 'Housing association added!'
         return make_response(jsonify(response_object), 201)
     except IntegrityError as exception:
-        response_object['status'] = fail_status_msg
+        response_object['status'] = status_msg_fail
         response_object['message'] = 'Something failed when adding housing association to database'
         print(exception)
         db.session.rollback()
@@ -74,7 +74,7 @@ def add_ha():
 
 @app.route('/ha/<int:ha_id>', methods=['DELETE'])
 def delete_ha(ha_id):
-    response_object = {'status': success_status_msg}
+    response_object = {'status': status_msg_success}
     housing_association = HousingAssociation.query.get_or_404(ha_id)
     # If housing association is found, delete it's record
     if housing_association:
@@ -83,13 +83,13 @@ def delete_ha(ha_id):
         response_object['message'] = 'Housing association deleted!'
         return jsonify(response_object)
     else:
-        response_object['status'] = fail_status_msg
+        response_object['status'] = status_msg_fail
         response_object['message'] = 'Housing association not found'
         return make_response(jsonify(response_object), 404)
 
 @app.route('/users/', methods=['GET'])
 def get_all_users():
-    response_object = {'status': success_status_msg}
+    response_object = {'status': status_msg_success}
     users = User.query.all()
     users_array = many_users_schema.dump(users)
     response_object['users'] = users_array
@@ -97,7 +97,7 @@ def get_all_users():
 
 @app.route('/users/', methods=['POST'])
 def add_user():
-    response_object = {'status': success_status_msg}
+    response_object = {'status': status_msg_success}
     request_data = request.get_json()
     print(request_data)
     user = User.query.filter_by(email=request_data.get('email')).first()
@@ -121,10 +121,32 @@ def add_user():
             return make_response(jsonify(response_object), 201)
         except Exception as e:
             print(f'Exception: {e}')
-            response_object['status'] = fail_status_msg
+            response_object['status'] = status_msg_fail
             response_object['message'] = 'Error occurred when adding user to database. Please try again.'
             return make_response(jsonify(response_object), 401)
     else:
-        response_object['status'] = fail_status_msg
+        response_object['status'] = status_msg_fail
         response_object['message'] = 'User already exists. Please log in or try another email'
         return make_response(jsonify(response_object), 202)
+
+@app.route('/auth/login', methods=['POST'])
+def login():
+    response_object = {'status': status_msg_success}
+    request_data = request.get_json()
+    try:
+        user = User.query.filter_by(email=request_data.get('email')).first()
+        if user and user.check_password(request_data['password']):
+            auth_token = user.encode_auth_token(user.id)
+            if auth_token:
+                response_object['message'] = 'Succesfully logged in'
+                response_object['auth_token'] = auth_token.decode()
+                return make_response(jsonify(response_object), 200)
+        else:
+            response_object['status'] = status_msg_fail
+            response_object['message'] = 'Login information incorrect. Please try again.'
+            return make_response(jsonify(response_object), 401)
+    except Exception as e:
+        print(f'Execption: {e}')
+        response_object['status'] = status_msg_fail
+        response_object['message'] = 'Login failed. Please try again'
+        return make_response(jsonify(response_object), 500)
