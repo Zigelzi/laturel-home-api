@@ -95,12 +95,12 @@ def get_all_users():
     response_object['users'] = users_array
     return jsonify(response_object)
 
-@app.route('/users/', methods=['POST'])
-def add_user():
+@app.route('/auth/signup', methods=['POST'])
+def signup():
     response_object = {'status': status_msg_success}
     request_data = request.get_json()
-    print(request_data)
     user = User.query.filter_by(email=request_data.get('email')).first()
+    print(f'User: {user}')
     if not user:
         # Check that user doesn't exist in the database and add him/her to the DB
         try:
@@ -110,7 +110,7 @@ def add_user():
                 name=request_data.get('name'),
                 email=request_data.get('email')
                 )
-            print(f'User: {user}')
+            
             user.set_password(request_data.get('password'))
             db.session.add(user)
             db.session.commit()

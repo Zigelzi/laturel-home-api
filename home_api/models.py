@@ -126,6 +126,6 @@ class ApartmentSchema(ma.ModelSchema):
 class UserSchema(ma.ModelSchema):
     name = ma.Str(required=True)
     email = ma.Str(required=True, validate=validate.Email(error='Not valid email address'))
-    #password_hash = ma.Str(required=True, load_only=True)
+    password = ma.Str(required=True, load_only=True)
     class Meta:
         unknown = EXCLUDE
