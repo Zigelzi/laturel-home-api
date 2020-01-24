@@ -28,7 +28,7 @@ class HousingAssociation(db.Model):
 
     # Foreign keys and relationships
     buildings = db.relationship('Building', backref='housing_association', lazy='dynamic')
-
+    users = db.relationship('User', backref='housing_association', lazy='dynamic')
     def __repr__(self):
         return f'<HousingAssociation {self.name} | {self.business_id} | {self.street} {self.street_number} | {self.postal_code} {self.city}>'
 
@@ -62,6 +62,7 @@ class User(db.Model):
 
     # Foreign keys
     building_id = db.Column(db.Integer, db.ForeignKey('building.id'))
+    housing_association_id = db.Column(db.Integer, db.ForeignKey('housing_association.id'))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -123,7 +124,7 @@ class ApartmentSchema(ma.ModelSchema):
     class Meta:
         model = Apartment
 
-class UserSchema(ma.ModelSchema):
+class UserSchema(ma.Schema):
     name = ma.Str(required=True)
     email = ma.Str(required=True, validate=validate.Email(error='Not valid email address'))
     password = ma.Str(required=True, load_only=True)

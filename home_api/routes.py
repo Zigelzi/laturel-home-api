@@ -1,5 +1,6 @@
 from flask import jsonify, request, make_response
 from sqlalchemy.exc import IntegrityError
+import traceback
 
 from home_api import app, db
 from home_api.models import HousingAssociation, Building, Apartment, User, UserSchema, HousingAssociationSchema
@@ -147,6 +148,7 @@ def login():
             return make_response(jsonify(response_object), 401)
     except Exception as e:
         print(f'Execption: {e}')
+        traceback.print_exc()
         response_object['status'] = status_msg_fail
         response_object['message'] = 'Login failed. Please try again'
         return make_response(jsonify(response_object), 500)
