@@ -1,6 +1,7 @@
 from flask import jsonify, request, make_response
 from sqlalchemy.exc import IntegrityError
 import traceback
+import jwt
 
 from home_api import app, db
 from home_api.models import HousingAssociation, Building, Apartment, User, UserSchema, HousingAssociationSchema
@@ -140,7 +141,14 @@ def login():
             auth_token = user.encode_auth_token(user.id)
             if auth_token:
                 response_object['message'] = 'Succesfully logged in'
-                response_object['auth_token'] = auth_token.decode()
+                # Initialize empty user object to store the user data
+                response_object['user'] = {}
+                response_object['user']['id'] = user.id
+                response_object['user']['name'] = user.name
+                response_object['user']['email'] = user.email
+                response_object['user']['building_id'] = user.building_id
+                response_object['user']['housing_association_id'] = user.housing_association_id
+                response_object['user']['auth_token'] = auth_token.decode()
                 return make_response(jsonify(response_object), 200)
         else:
             response_object['status'] = status_msg_fail
