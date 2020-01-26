@@ -140,6 +140,9 @@ def login():
         if user and user.check_password(request_data['password']):
             auth_token = user.encode_auth_token(user.id)
             if auth_token:
+                # Query users HA to add it to user object
+                ha = HousingAssociation.query.get(user.housing_association_id)
+                ha_object = ha_schema.dump(ha)
                 response_object['message'] = 'Succesfully logged in'
                 # Initialize empty user object to store the user data
                 response_object['user'] = {}
@@ -147,7 +150,7 @@ def login():
                 response_object['user']['name'] = user.name
                 response_object['user']['email'] = user.email
                 response_object['user']['building_id'] = user.building_id
-                response_object['user']['housing_association_id'] = user.housing_association_id
+                response_object['user']['housing_association'] = ha_object
                 response_object['user']['auth_token'] = auth_token.decode()
                 return make_response(jsonify(response_object), 200)
         else:
