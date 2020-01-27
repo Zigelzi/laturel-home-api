@@ -115,6 +115,15 @@ class HaRepairItem(db.Model):
     housing_association_id = db.Column(db.Integer, db.ForeignKey('housing_association.id'))
     contractor_id = db.Column(db.Integer, db.ForeignKey('contractor.id'))
 
+class RepairCategory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), required=True, unique=True)
+    description = db.Column(db.String(255), required=True)
+
+repair_category_rel = db.Table('repair_category', 
+                                db.Column('ha_repair_id', db.Integer, db.ForeignKey('ha_repair_item.id')),
+                                db.Column('repair_category_id', db.Integer, db.ForeignKey('repair_category.id')))
+
 # ---------------------------------
 # Marshmallow serialization schemas
 # ---------------------------------
