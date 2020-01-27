@@ -113,14 +113,14 @@ class HaRepairItem(db.Model):
 
     # Foreign keys and relationships
     housing_association_id = db.Column(db.Integer, db.ForeignKey('housing_association.id'))
-    contractor_id = db.Column(db.Integer, db.ForeignKey('contractor.id'))
+    #contractor_id = db.Column(db.Integer, db.ForeignKey('contractor.id'))
 
 class RepairCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False, unique=True)
     description = db.Column(db.String(255), nullable=False)
 
-repair_category_rel = db.Table('repair_category', 
+repair_category_rel = db.Table('repair_category_relationship', 
                                 db.Column('ha_repair_id', db.Integer, db.ForeignKey('ha_repair_item.id')),
                                 db.Column('repair_category_id', db.Integer, db.ForeignKey('repair_category.id')))
 
