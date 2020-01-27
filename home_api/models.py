@@ -106,6 +106,14 @@ class User(db.Model):
         except jwt.InvalidTokenError:
             return 'Invalid token. Please log in again.'
 
+class HaRepairItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    repair_date = db.Column(db.DateTime, default=datetime.utcnow)
+    description = db.Column(db.String(255), required=True)
+
+    # Foreign keys and relationships
+    housing_association_id = db.Column(db.Integer, db.ForeignKey('housing_association.id'))
+    contractor_id = db.Column(db.Integer, db.ForeignKey('contractor.id'))
 
 # ---------------------------------
 # Marshmallow serialization schemas
