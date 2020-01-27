@@ -106,8 +106,10 @@ class User(db.Model):
         except jwt.InvalidTokenError:
             return 'Invalid token. Please log in again.'
 
-# Marshmallow serialization schemas
 
+# ---------------------------------
+# Marshmallow serialization schemas
+# ---------------------------------
 class BuildingSchema(ma.ModelSchema):
     apartments = Nested(lambda: ApartmentSchema, many=True, dump_only=True, exclude=['building'])
     class Meta:
