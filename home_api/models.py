@@ -113,12 +113,19 @@ class HaRepairItem(db.Model):
 
     # Foreign keys and relationships
     housing_association_id = db.Column(db.Integer, db.ForeignKey('housing_association.id'))
+    repair_category = db.relationship('repair_category', secondary=repair_category_rel, backref='ha_repairs', lazy=True)
     #contractor_id = db.Column(db.Integer, db.ForeignKey('contractor.id'))
+
+    def __repr__(self):
+        return f'<HaRepairItem {self.repair_date} | {self.description}>'
 
 class RepairCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False, unique=True)
     description = db.Column(db.String(255), nullable=False)
+
+    def __repr__(self):
+        return f'<RepairCategory {self.name} | {self.description}>'
 
 repair_category_rel = db.Table('repair_category_relationship', 
                                 db.Column('ha_repair_id', db.Integer, db.ForeignKey('ha_repair_item.id')),
