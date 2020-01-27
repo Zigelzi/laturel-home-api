@@ -109,7 +109,7 @@ class User(db.Model):
 class HaRepairItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     repair_date = db.Column(db.DateTime, default=datetime.utcnow)
-    description = db.Column(db.String(255), required=True)
+    description = db.Column(db.String(255), nullable=False)
 
     # Foreign keys and relationships
     housing_association_id = db.Column(db.Integer, db.ForeignKey('housing_association.id'))
@@ -117,12 +117,13 @@ class HaRepairItem(db.Model):
 
 class RepairCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), required=True, unique=True)
-    description = db.Column(db.String(255), required=True)
+    name = db.Column(db.String(255), nullable=False, unique=True)
+    description = db.Column(db.String(255), nullable=False)
 
 repair_category_rel = db.Table('repair_category', 
                                 db.Column('ha_repair_id', db.Integer, db.ForeignKey('ha_repair_item.id')),
                                 db.Column('repair_category_id', db.Integer, db.ForeignKey('repair_category.id')))
+
 
 # ---------------------------------
 # Marshmallow serialization schemas
