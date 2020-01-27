@@ -106,6 +106,10 @@ class User(db.Model):
         except jwt.InvalidTokenError:
             return 'Invalid token. Please log in again.'
 
+repair_category_rel = db.Table('repair_category_relationship', 
+                                db.Column('ha_repair_id', db.Integer, db.ForeignKey('ha_repair_item.id')),
+                                db.Column('repair_category_id', db.Integer, db.ForeignKey('repair_category.id')))
+
 class HaRepairItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     repair_date = db.Column(db.DateTime, default=datetime.utcnow)
@@ -113,7 +117,7 @@ class HaRepairItem(db.Model):
 
     # Foreign keys and relationships
     housing_association_id = db.Column(db.Integer, db.ForeignKey('housing_association.id'))
-    repair_category = db.relationship('repair_category', secondary=repair_category_rel, backref='ha_repairs', lazy=True)
+    repair_category = db.relationship('RepairCategory', secondary=repair_category_rel, backref='ha_repairs', lazy=True)
     #contractor_id = db.Column(db.Integer, db.ForeignKey('contractor.id'))
 
     def __repr__(self):
@@ -126,11 +130,6 @@ class RepairCategory(db.Model):
 
     def __repr__(self):
         return f'<RepairCategory {self.name} | {self.description}>'
-
-repair_category_rel = db.Table('repair_category_relationship', 
-                                db.Column('ha_repair_id', db.Integer, db.ForeignKey('ha_repair_item.id')),
-                                db.Column('repair_category_id', db.Integer, db.ForeignKey('repair_category.id')))
-
 
 # ---------------------------------
 # Marshmallow serialization schemas
