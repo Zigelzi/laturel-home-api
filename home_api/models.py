@@ -117,8 +117,9 @@ class HaRepairItem(db.Model):
 
     # Foreign keys and relationships
     housing_association_id = db.Column(db.Integer, db.ForeignKey('housing_association.id'))
-    repair_category = db.relationship('RepairCategory', secondary=repair_category_rel, backref='ha_repairs', lazy=True)
-    #contractor_id = db.Column(db.Integer, db.ForeignKey('contractor.id'))
+    repair_category = db.relationship('RepairCategory', secondary=repair_category_rel, backref='ha_repair', lazy='dynamic')
+    # TODO: Add contractor relationship when the table is created
+    # contractor_id = db.Column(db.Integer, db.ForeignKey('contractor.id'))
 
     def __repr__(self):
         return f'<HaRepairItem {self.repair_date} | {self.description}>'
@@ -158,3 +159,13 @@ class UserSchema(ma.Schema):
     password = ma.Str(required=True, load_only=True)
     class Meta:
         unknown = EXCLUDE
+
+class RepairCategorySchema(ma.ModelSchema):
+    class Meta:
+        model = RepairCategory
+        fields = ('name', 'description')
+
+class HaRepairItemSchema(ma.ModelSchema):
+    repair_categories = Nested(RepairCategorySchema, many=True, dump_only=True, exclude=['ha_repair_item'])
+    class Meta:
+        model = HaRepairItem
