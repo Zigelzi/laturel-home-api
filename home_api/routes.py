@@ -11,17 +11,17 @@ from home_api.models import (HousingAssociation, Building,
 from home_api.config import Config, DevConfig
 
 # Initialize the Flask-Marshmallow schemas for serializations
-all_ha_schema = HousingAssociationSchema(many=True) # Serialize all the results as array
+has_schema = HousingAssociationSchema(many=True) # Serialize all the results as array
 ha_schema = HousingAssociationSchema()
 
-all_repairs_schema = HaRepairItemSchema(many=True)
+repairs_schema = HaRepairItemSchema(many=True)
 repair_schema = HaRepairItemSchema()
 
-all_repair_categories_schema = RepairCategorySchema(many=True)
+repair_categories_schema = RepairCategorySchema(many=True)
 repair_category_schema = RepairCategorySchema()
 
-many_users_schema = UserSchema(many=True) # Serialize all the results as array
-users_schema = UserSchema()
+users_schema = UserSchema(many=True) # Serialize all the results as array
+user_schema = UserSchema()
 
 # Status message descriptions
 status_msg_fail = 'fail'
@@ -38,7 +38,7 @@ def get_all_ha():
     response_object = {'status': status_msg_success}
     housing_associations = HousingAssociation.query.all()
     # Serialize the query results to ha_array variable and add the array to response
-    ha_array = all_ha_schema.dump(housing_associations)
+    ha_array = has_schema.dump(housing_associations)
     response_object['housingAssociations'] = ha_array
     return jsonify(response_object)
 
@@ -98,12 +98,15 @@ def delete_ha(ha_id):
         response_object['message'] = 'Housing association not found'
         return make_response(jsonify(response_object), 404)
 
-@app.route('/ha/repairs', methods=['POST'])
+@app.route('/ha/repair', methods=['POST'])
 def add_repair():
     response_object = {'status': status_msg_success}
     try:
         request_json = request.get_json()
-
+        repair = repair_schema.load(request_json)
+        db.session.add(repair)
+        db.session.commit()
+        return make_response(jsonify(response_object, 201))
     except Exception as e:
         print(f'Error: {e}')
         response_object['status'] = status_msg_fail
@@ -127,11 +130,29 @@ def add_repair_category():
         response_object['message'] = 'Something went wrong when trying to add repair category! Please try again'
         return make_response(jsonify(response_object, 401))
 
+@app.route('/ha/repair_category', methods=['GET'])
+def get_all_repair_categories():
+    response_object = {'status': status_msg_success}
+    try:
+        repair_categories = RepairCategory.query.all()
+        repair_category_array = repair_categories_schema.dump(repair_categories)
+        response_object['repairCategories'] = repair_category_array
+        return make_response(jsonify(response_object, 201))
+    except Exception as e:
+        print(f'Error: {e}')
+        print('Request \n')
+        print(request.get_json())
+        response_object['status'] = status_msg_fail
+        response_object['message'] = 'Something went wrong when trying to add repair category! Please try again'
+        return make_response(jsonify(response_object, 401))
+
+
+
 @app.route('/users/', methods=['GET'])
 def get_all_users():
     response_object = {'status': status_msg_success}
     users = User.query.all()
-    users_array = many_users_schema.dump(users)
+    users_array = users_schema.dump(users)
     response_object['users'] = users_array
     return jsonify(response_object)
 

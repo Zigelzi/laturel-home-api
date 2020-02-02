@@ -117,6 +117,7 @@ class HaRepairItem(db.Model):
 
     # Foreign keys and relationships
     housing_association_id = db.Column(db.Integer, db.ForeignKey('housing_association.id'))
+    repair_category_id = db.Column(db.Integer, db.ForeignKey('repair_category.id'))
     repair_category = db.relationship('RepairCategory', secondary=repair_category_rel, backref='ha_repair', lazy='dynamic')
     # TODO: Add contractor relationship when the table is created
     # contractor_id = db.Column(db.Integer, db.ForeignKey('contractor.id'))
@@ -163,7 +164,6 @@ class UserSchema(ma.Schema):
 class RepairCategorySchema(ma.ModelSchema):
     class Meta:
         model = RepairCategory
-        fields = ('name', 'description')
 
 class HaRepairItemSchema(ma.ModelSchema):
     repair_categories = Nested(RepairCategorySchema, many=True, dump_only=True, exclude=['ha_repair_item'])
