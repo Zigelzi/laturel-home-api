@@ -147,7 +147,6 @@ def get_all_repair_categories():
         return make_response(jsonify(response_object, 401))
 
 
-
 @app.route('/users/', methods=['GET'])
 def get_all_users():
     response_object = {'status': status_msg_success}
@@ -155,6 +154,39 @@ def get_all_users():
     users_array = users_schema.dump(users)
     response_object['users'] = users_array
     return jsonify(response_object)
+
+@app.route('/user/<int:user_id>')
+def get_user(user_id):
+    response_object = {'status': status_msg_success}
+    request_data = request.get_json()
+    try:
+        user = User.query.get_or_404(user_id)
+        auth_token = user.encode_auth_token(user.id)
+        if user and auth_token:
+            # Query users HA to add it to user object
+            ha = HousingAssociation.query.get(user.housing_association_id)
+            ha_object = ha_schema.dump(ha)
+            response_object['message'] = 'Succesfully retrieved user'
+            # Initialize empty user object to store the user data
+            response_object['user'] = {}
+            response_object['user']['id'] = user.id
+            response_object['user']['name'] = user.name
+            response_object['user']['email'] = user.email
+            response_object['user']['building_id'] = user.building_id
+            response_object['user']['housing_association'] = ha_object
+            response_object['user']['auth_token'] = auth_token.decode()
+            return make_response(jsonify(response_object), 200)
+        else:
+            response_object['status'] = status_msg_fail
+            response_object['message'] = 'Authentication information incorrect. Please login.'
+            return make_response(jsonify(response_object), 401)
+    except Exception as e:
+        print(f'Execption: {e}')
+        traceback.print_exc()
+        response_object['status'] = status_msg_fail
+        response_object['message'] = 'Retrieving user failed. Please try again'
+        return make_response(jsonify(response_object), 500)
+            
 
 @app.route('/auth/signup', methods=['POST'])
 def signup():
