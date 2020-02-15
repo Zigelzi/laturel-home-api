@@ -106,6 +106,7 @@ def add_repair():
         repair = repair_schema.load(request_json)
         db.session.add(repair)
         db.session.commit()
+        response_object['message'] = 'Repair added succesfully!'
         return make_response(jsonify(response_object), 201)
     except Exception as e:
         print(f'Error: {e}')
@@ -122,6 +123,7 @@ def add_repair_category():
         repair_category = repair_category_schema.load(request_json)
         db.session.add(repair_category)
         db.session.commit()
+        response_object['message'] = 'Repair category added succesfully!'
         return make_response(jsonify(response_object), 201)
     except Exception as e:
         print(f'Error: {e}')
