@@ -81,7 +81,7 @@ def add_ha():
         response_object['message'] = 'Something failed when adding housing association to database'
         print(exception)
         db.session.rollback()
-        return make_response(jsonify(response_object, 400))
+        return make_response(jsonify(response_object), 400)
 
 @app.route('/ha/<int:ha_id>', methods=['DELETE'])
 def delete_ha(ha_id):
@@ -106,12 +106,13 @@ def add_repair():
         repair = repair_schema.load(request_json)
         db.session.add(repair)
         db.session.commit()
-        return make_response(jsonify(response_object, 201))
+        return make_response(jsonify(response_object), 201)
     except Exception as e:
         print(f'Error: {e}')
         response_object['status'] = status_msg_fail
         response_object['message'] = 'Something went wrong when trying to add repair! Please try again'
-        return make_response(jsonify(response_object, 401))
+        db.session.rollback()
+        return make_response(jsonify(response_object), 401)
 
 @app.route('/ha/repair_category', methods=['POST'])
 def add_repair_category():
@@ -121,14 +122,15 @@ def add_repair_category():
         repair_category = repair_category_schema.load(request_json)
         db.session.add(repair_category)
         db.session.commit()
-        return make_response(jsonify(response_object, 201))
+        return make_response(jsonify(response_object), 201)
     except Exception as e:
         print(f'Error: {e}')
-        print('Request \n')
+        print('Request')
         print(request.get_json())
         response_object['status'] = status_msg_fail
         response_object['message'] = 'Something went wrong when trying to add repair category! Please try again'
-        return make_response(jsonify(response_object, 401))
+        db.session.rollback()
+        return make_response(jsonify(response_object), 401)
 
 @app.route('/ha/repair_category', methods=['GET'])
 def get_all_repair_categories():
@@ -137,14 +139,15 @@ def get_all_repair_categories():
         repair_categories = RepairCategory.query.all()
         repair_category_array = repair_categories_schema.dump(repair_categories)
         response_object['repairCategories'] = repair_category_array
-        return make_response(jsonify(response_object, 201))
+        return make_response(jsonify(response_object), 201)
     except Exception as e:
         print(f'Error: {e}')
-        print('Request \n')
+        print('Request')
         print(request.get_json())
         response_object['status'] = status_msg_fail
         response_object['message'] = 'Something went wrong when trying to add repair category! Please try again'
-        return make_response(jsonify(response_object, 401))
+        db.session.rollback()
+        return make_response(jsonify(response_object), 401)
 
 
 @app.route('/users/', methods=['GET'])
