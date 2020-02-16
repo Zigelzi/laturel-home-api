@@ -92,7 +92,7 @@ def delete_ha(ha_id):
         db.session.delete(housing_association)
         db.session.commit()
         response_object['message'] = 'Housing association deleted!'
-        return jsonify(response_object)
+        return make_response(jsonify(response_object), 201)
     else:
         response_object['status'] = status_msg_fail
         response_object['message'] = 'Housing association not found'
@@ -133,6 +133,21 @@ def add_repair_category():
         response_object['message'] = 'Something went wrong when trying to add repair category! Please try again'
         db.session.rollback()
         return make_response(jsonify(response_object), 401)
+
+@app.route('/ha/repair_category/<int:category_id>', methods=['DELETE'])
+def delete_repair_category(category_id):
+    response_object = {'status': status_msg_success}
+    repair_category = RepairCategory.query.get_or_404(category_id)
+    # If repair category is found, delete it's record
+    if repair_category:
+        db.session.delete(repair_category)
+        db.session.commit()
+        response_object['message'] = 'Repair category deleted!'
+        return make_response(jsonify(response_object), 201)
+    else:
+        response_object['status'] = status_msg_fail
+        response_object['message'] = 'Repair category not found'
+        return make_response(jsonify(response_object), 404)
 
 @app.route('/ha/repair_category', methods=['GET'])
 def get_all_repair_categories():
