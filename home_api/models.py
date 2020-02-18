@@ -106,10 +106,6 @@ class User(db.Model):
         except jwt.InvalidTokenError:
             return 'Invalid token. Please log in again.'
 
-repair_category_rel = db.Table('repair_category_relationship', 
-                                db.Column('ha_repair_id', db.Integer, db.ForeignKey('ha_repair_item.id')),
-                                db.Column('repair_category_id', db.Integer, db.ForeignKey('repair_category.id')))
-
 class HaRepairItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     repair_date = db.Column(db.Date, default=datetime.today)
@@ -118,8 +114,8 @@ class HaRepairItem(db.Model):
 
     # Foreign keys and relationships
     housing_association_id = db.Column(db.Integer, db.ForeignKey('housing_association.id'))
-    repair_category_id = db.Column(db.Integer, db.ForeignKey('repair_category.id'))
-    repair_category = db.relationship('RepairCategory', secondary=repair_category_rel, backref='ha_repair', lazy='dynamic')
+    repair_category_id = db.Column(db.Integer,db.ForeignKey('repair_category.id'))
+    #repair_category = db.relationship('RepairCategory', lazy=True)
     # TODO: Add contractor relationship when the table is created
     # contractor_id = db.Column(db.Integer, db.ForeignKey('contractor.id'))
 
@@ -130,6 +126,8 @@ class RepairCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False, unique=True)
     description = db.Column(db.String(255), nullable=False)
+    repair_items = db.relationship('HaRepairItem', backref='repair_category', lazy='dynamic')
+    
 
     def __repr__(self):
         return f'<RepairCategory {self.name} | {self.description}>'
@@ -167,6 +165,7 @@ class RepairCategorySchema(ma.ModelSchema):
         model = RepairCategory
 
 class HaRepairItemSchema(ma.ModelSchema):
-    repair_categories = Nested(RepairCategorySchema, many=True, dump_only=True, exclude=['ha_repair_item'])
+    #repair_categories = Nested(RepairCategorySchema, many=True, dump_only=True, exclude=['ha_repair_item'])
     class Meta:
         model = HaRepairItem
+        include_fk=True
