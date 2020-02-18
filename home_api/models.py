@@ -113,6 +113,7 @@ repair_category_rel = db.Table('repair_category_relationship',
 class HaRepairItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     repair_date = db.Column(db.DateTime, default=datetime.utcnow)
+    title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.String(255), nullable=False)
 
     # Foreign keys and relationships
