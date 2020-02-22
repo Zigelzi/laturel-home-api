@@ -115,6 +115,14 @@ def add_repair():
         db.session.rollback()
         return make_response(jsonify(response_object), 401)
 
+@app.route('/ha/repair/<int:ha_id>', methods=['GET'])
+def get_ha_repairs(ha_id):
+    response_object = {'status': status_msg_success}
+    ha = HousingAssociation.query.get_or_404(ha_id)
+    repairs_array = repairs_schema.dump(ha.repairs.all())
+    response_object['repairs'] = repairs_array
+    return make_response(jsonify(response_object), 201)
+
 @app.route('/ha/repair_category', methods=['POST'])
 def add_repair_category():
     response_object = {'status': status_msg_success}

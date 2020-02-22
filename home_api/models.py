@@ -29,6 +29,7 @@ class HousingAssociation(db.Model):
     # Foreign keys and relationships
     buildings = db.relationship('Building', backref='housing_association', lazy='dynamic')
     users = db.relationship('User', backref='housing_association', lazy='dynamic')
+    repairs = db.relationship('HaRepairItem', backref='housing_assocaition', lazy='dynamic')
     def __repr__(self):
         return f'<HousingAssociation {self.name} | {self.business_id} | {self.street} {self.street_number} | {self.postal_code} {self.city}>'
 
@@ -115,7 +116,7 @@ class HaRepairItem(db.Model):
     # Foreign keys and relationships
     housing_association_id = db.Column(db.Integer, db.ForeignKey('housing_association.id'))
     repair_category_id = db.Column(db.Integer,db.ForeignKey('repair_category.id'))
-    #repair_category = db.relationship('RepairCategory', lazy=True)
+    repair_category = db.relationship('RepairCategory', backref=db.backref('ha_repair_items', lazy='dynamic'))
     # TODO: Add contractor relationship when the table is created
     # contractor_id = db.Column(db.Integer, db.ForeignKey('contractor.id'))
 
@@ -126,7 +127,7 @@ class RepairCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False, unique=True)
     description = db.Column(db.String(255), nullable=False)
-    repair_items = db.relationship('HaRepairItem', backref='repair_category', lazy='dynamic')
+    #repair_items = db.relationship('HaRepairItem', backref='repair_category', lazy='dynamic')
     
 
     def __repr__(self):
@@ -136,18 +137,16 @@ class RepairCategory(db.Model):
 # Marshmallow serialization schemas
 # ---------------------------------
 class BuildingSchema(ma.ModelSchema):
-    apartments = Nested(lambda: ApartmentSchema, many=True, dump_only=True, exclude=['building'])
+    apartments = Nested(lambda: ApartmentSchema(exclude=['building']), many=True, dump_only=True, exclude=['building'])
     class Meta:
         model = Building
 
 class HousingAssociationSchema(ma.ModelSchema):
     # Override the buildings attribute as Nested field.
-    buildings = Nested(BuildingSchema, many=True, dump_only=True, exclude=['housing_association'])
-
+    buildings = Nested(BuildingSchema, many=True, dump_only=True)
     class Meta:
         model = HousingAssociation
         unknown = EXCLUDE
-
 
 class ApartmentSchema(ma.ModelSchema):
     class Meta:
@@ -165,7 +164,7 @@ class RepairCategorySchema(ma.ModelSchema):
         model = RepairCategory
 
 class HaRepairItemSchema(ma.ModelSchema):
-    #repair_categories = Nested(RepairCategorySchema, many=True, dump_only=True, exclude=['ha_repair_item'])
+    repair_category = Nested(RepairCategorySchema, dump_only=True, only=['name'])
     class Meta:
         model = HaRepairItem
         include_fk=True
