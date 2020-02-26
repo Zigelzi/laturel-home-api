@@ -125,6 +125,18 @@ class HaRepairItem(db.Model):
     def __repr__(self):
         return f'<HaRepairItem {self.repair_date} | {self.description}>'
 
+class RepairTask(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    created_at = db.Column(db.Date, nullable=False, default=datetime.today)
+    completed_at = db.Column(db.Date)
+    title = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.String(255))
+    complete = db.Column(db.Boolean, nullable=False, default=False)
+
+    # Foreign keys and relationships
+    assignee_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    assignee = db.relationship('User', backref=db.backref('repair_tasks', lazy='dynamic'))
+
 class RepairCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False, unique=True)
