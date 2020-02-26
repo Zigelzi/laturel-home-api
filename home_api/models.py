@@ -109,9 +109,11 @@ class User(db.Model):
 
 class HaRepairItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    repair_date = db.Column(db.Date, default=datetime.today)
+    created_at = db.Column(db.Date, default=datetime.today)
+    completed_at = db.Column(db.Date)
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.String(255), nullable=False)
+    completed = db.Column(db.Boolean, nullable=False, default=False)
 
     # Foreign keys and relationships
     housing_association_id = db.Column(db.Integer, db.ForeignKey('housing_association.id'))
